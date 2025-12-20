@@ -3,20 +3,19 @@ export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
 export type UserRole = 'ADMIN' | 'COACH' | 'SECRETARY';
 export type PaymentMethod = 'CASH' | 'CARD' | 'CREDIT' | 'POINTS';
 
-export interface DriveConfig {
-  email: string;
-  fileId?: string;
-  linkedAt?: string;
-  lastSync?: string;
-}
-
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
   password: string;
-  lastActive?: string;
+}
+
+// Added SchoolInfo interface to be used by Sidebar and other components
+export interface SchoolInfo {
+  name: string;
+  slogan: string;
+  logo?: string;
 }
 
 export interface Coach {
@@ -35,16 +34,6 @@ export interface Coach {
   updatedAt: number;
 }
 
-export interface Supplier {
-  id: string;
-  name: string;
-  document: string;
-  phone: string;
-  email: string;
-  address: string;
-  updatedAt: number;
-}
-
 export interface Product {
   id: string;
   code: string;
@@ -53,26 +42,6 @@ export interface Product {
   sellPrice: number;
   stock: number;
   category: string;
-  updatedAt: number;
-}
-
-export interface Promotion {
-  id: string;
-  name: string;
-  discountPercentage: number;
-  isActive: boolean;
-  minPurchase?: number;
-}
-
-export interface Customer {
-  id: string;
-  name: string;
-  document: string;
-  phone: string;
-  address: string;
-  creditLimit: number;
-  currentDebt: number;
-  loyaltyPoints: number;
   updatedAt: number;
 }
 
@@ -88,24 +57,11 @@ export interface SaleItem {
 export interface Sale {
   id: string;
   date: string;
-  customerId?: string;
   items: SaleItem[];
   total: number;
   discount: number;
-  pointsEarned: number;
   paymentMethod: PaymentMethod;
   status: 'PAID' | 'PENDING';
-  updatedAt: number;
-}
-
-export interface Purchase {
-  id: string;
-  date: string;
-  productId: string;
-  supplierId: string;
-  quantity: number;
-  unitCost: number;
-  totalCost: number;
   updatedAt: number;
 }
 
@@ -131,19 +87,6 @@ export interface TrainingPlan {
   updatedAt: number;
 }
 
-export interface SchoolInfo {
-  name: string;
-  slogan: string;
-  logo?: string;
-}
-
-export interface ParentsInfo {
-  fatherName: string;
-  motherName: string;
-  phone: string;
-  address: string;
-}
-
 export interface Student {
   id: string;
   firstName: string;
@@ -158,13 +101,16 @@ export interface Student {
   photo?: string;
   position: string;
   entryDate: string;
-  exitDate?: string;
   category: string;
   coachId: string;
-  parents: ParentsInfo;
+  parents: {
+    fatherName: string;
+    motherName: string;
+    phone: string;
+    address: string;
+  };
   observations: string;
   paymentStatus: 'UP_TO_DATE' | 'IN_ARREARS';
-  lastPaymentMonth?: string;
   status: 'ACTIVE' | 'RETIRED';
   updatedAt: number;
 }
@@ -174,10 +120,9 @@ export interface Transaction {
   orderNumber: number;
   date: string;
   type: 'INCOME' | 'EXPENSE';
-  category: 'MONTHLY_PAYMENT' | 'PETTY_CASH' | 'EQUIPMENT' | 'SALARY' | 'STORE_SALE' | 'STORE_PURCHASE' | 'OTHER';
+  category: 'MONTHLY_PAYMENT' | 'PETTY_CASH' | 'EQUIPMENT' | 'SALARY' | 'STORE_SALE' | 'OTHER';
   amount: number;
   description: string;
-  studentId?: string;
   updatedAt: number;
 }
 
@@ -190,17 +135,7 @@ export interface AppData {
   matches: MatchCallup[];
   users: User[];
   products: Product[];
-  customers: Customer[];
-  suppliers: Supplier[];
   sales: Sale[];
-  purchases: Purchase[];
-  promotions: Promotion[];
-  pointsConfig: {
-    pointsPerThousand: number;
-    valuePerPoint: number;
-  };
-  driveConfig?: DriveConfig;
   pettyCashBalance: number;
   nextOrderNumber: number;
-  version: number;
 }

@@ -28,20 +28,7 @@ export const INITIAL_DATA: AppData = {
     { id: 'p1', code: 'UNI-01', description: 'Uniforme Oficial Titular', buyPrice: 45000, sellPrice: 85000, stock: 20, category: 'Uniformes', updatedAt: Date.now() },
     { id: 'p2', code: 'BAL-05', description: 'Balón Profesional #5', buyPrice: 120000, sellPrice: 185000, stock: 10, category: 'Implementos', updatedAt: Date.now() }
   ],
-  customers: [],
-  suppliers: [
-    { id: 's1', name: 'Deportes El Campeón', document: '800123456-1', phone: '3001234567', email: 'ventas@campeon.com', address: 'Calle 10 #5-20', updatedAt: Date.now() }
-  ],
-  promotions: [
-    { id: 'pr1', name: 'Descuento Inauguración', discountPercentage: 10, isActive: true }
-  ],
-  pointsConfig: {
-    pointsPerThousand: 1, // 1 punto por cada $1,000 COP
-    valuePerPoint: 100 // Cada punto vale $100 COP para redención
-  },
   sales: [],
-  purchases: [],
   pettyCashBalance: 1000000,
-  nextOrderNumber: 1,
-  version: 4
+  nextOrderNumber: 1
 };
