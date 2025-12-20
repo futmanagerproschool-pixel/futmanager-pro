@@ -11,24 +11,35 @@ export const POSITIONS = [
 
 export const INITIAL_DATA: AppData = {
   school: {
-    name: 'FutManager Pro School',
-    slogan: 'Formando Campeones para el Mañana'
+    name: 'FutManager Pro Academy',
+    slogan: 'Liderazgo y Disciplina en la Cancha',
+    address: 'Av. Deportiva 123',
+    nit: '900.123.456-1'
+  },
+  loyaltyConfig: {
+    enabled: true,
+    pointsPerAmount: 10000,
+    redemptionValue: 500
   },
   users: [
     { id: 'u1', name: 'Admin Principal', email: 'admin@escuela.com', role: 'ADMIN', password: 'admin' },
-    { id: 'u2', name: 'Entrenador Juan', email: 'juan@escuela.com', role: 'COACH', password: 'coach' },
-    { id: 'u3', name: 'Secretaria Ana', email: 'ana@escuela.com', role: 'SECRETARY', password: 'sec' }
+    { id: 'u2', name: 'Entrenador Juan', email: 'juan@escuela.com', role: 'COACH', password: 'coach' }
   ],
   students: [],
+  externalClients: [],
+  vendors: [
+    { id: 'v1', name: 'Deportes El Campeón', nit: '800.555.444', phone: '3001234567', category: 'Uniformes', updatedAt: Date.now() }
+  ],
   coaches: [],
   transactions: [],
   matches: [],
   trainingPlans: [],
   products: [
-    { id: 'p1', code: 'UNI-01', description: 'Uniforme Oficial Titular', buyPrice: 45000, sellPrice: 85000, stock: 20, category: 'Uniformes', updatedAt: Date.now() },
-    { id: 'p2', code: 'BAL-05', description: 'Balón Profesional #5', buyPrice: 120000, sellPrice: 185000, stock: 10, category: 'Implementos', updatedAt: Date.now() }
+    { id: 'p1', code: 'UNI-01', description: 'Uniforme Titular', buyPrice: 45000, sellPrice: 85000, stock: 15, category: 'Uniformes', updatedAt: Date.now() },
+    { id: 'p2', code: 'BAL-05', description: 'Balón Golty #5', buyPrice: 90000, sellPrice: 140000, stock: 8, category: 'Implementos', updatedAt: Date.now() }
   ],
   sales: [],
-  pettyCashBalance: 1000000,
+  purchases: [],
+  pettyCashBalance: 2000000,
   nextOrderNumber: 1
 };
