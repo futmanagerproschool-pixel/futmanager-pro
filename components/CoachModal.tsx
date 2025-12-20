@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Camera, Save, PenTool, CreditCard } from 'lucide-react';
+import { X, Camera, Save, FileText, PenTool } from 'lucide-react';
 import { Coach } from '../types';
 import { CATEGORIES } from '../constants';
 
@@ -20,8 +20,9 @@ const CoachModal: React.FC<CoachModalProps> = ({ isOpen, onClose, onSave, coach 
     phone: '',
     address: '',
     baseSalary: 0,
-    bankAccount: '',
-    photo: ''
+    photo: '',
+    cvUrl: '',
+    signature: ''
   });
 
   useEffect(() => {
@@ -30,17 +31,18 @@ const CoachModal: React.FC<CoachModalProps> = ({ isOpen, onClose, onSave, coach 
 
   if (!isOpen) return null;
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photo') => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'photo' | 'cvUrl' | 'signature') => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => setFormData(prev => ({ ...prev, [field]: ev.target?.result as string }));
+      reader.onload = (ev) => setFormData(prev => ({ ...prev, [field]: ev.target?.result }));
       reader.readAsDataURL(file);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Added missing updatedAt property to comply with Coach interface
     onSave({ 
       ...formData, 
       id: formData.id || Math.random().toString(36).substr(2, 9),
@@ -50,20 +52,20 @@ const CoachModal: React.FC<CoachModalProps> = ({ isOpen, onClose, onSave, coach 
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-      <div className="bg-white rounded-[3rem] w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">
-            {coach ? 'Perfil del Entrenador' : 'Nuevo Integrante Técnico'}
+      <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <h2 className="text-2xl font-bold text-slate-800">
+            {coach ? 'Editar Entrenador' : 'Nuevo Entrenador'}
           </h2>
-          <button onClick={onClose} className="p-3 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
-            <X className="w-6 h-6" />
+          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+            <X className="w-6 h-6 text-slate-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 overflow-y-auto space-y-10 scrollbar-hide">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="space-y-6">
-              <div className="w-full aspect-square rounded-[3rem] bg-slate-100 border-4 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
+        <form onSubmit={handleSubmit} className="p-8 overflow-y-auto space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-4">
+              <div className="w-full aspect-square rounded-3xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group">
                 {formData.photo ? (
                   <img src={formData.photo} className="w-full h-full object-cover" />
                 ) : (
@@ -71,65 +73,67 @@ const CoachModal: React.FC<CoachModalProps> = ({ isOpen, onClose, onSave, coach 
                 )}
                 <input type="file" accept="image/*" onChange={e => handleFileUpload(e, 'photo')} className="absolute inset-0 opacity-0 cursor-pointer" />
               </div>
-              <label className="block text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Fotografía Perfil</label>
+              <label className="block text-center text-xs font-bold text-slate-500 uppercase">Fotografía</label>
               
-              <div className="p-8 bg-indigo-50 rounded-[2.5rem] border border-indigo-100 space-y-4">
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-3">
-                  <CreditCard className="w-5 h-5" /> Información Financiera
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <p className="text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-2">
+                  <PenTool className="w-4 h-4" /> Firma Digital
                 </p>
-                <div>
-                   <label className="block text-[8px] font-black text-indigo-300 uppercase mb-1">Cuenta para Nómina</label>
-                   <input placeholder="Ej: Ahorros 123-..." value={formData.bankAccount} onChange={e => setFormData({...formData, bankAccount: e.target.value})} className="w-full bg-white border-none rounded-xl px-4 py-3 font-bold text-indigo-900 outline-none" />
-                </div>
-                <div>
-                   <label className="block text-[8px] font-black text-indigo-300 uppercase mb-1">Salario Base (Mensual)</label>
-                   <input type="number" value={formData.baseSalary} onChange={e => setFormData({...formData, baseSalary: parseFloat(e.target.value)})} className="w-full bg-white border-none rounded-xl px-4 py-3 font-black text-emerald-600 outline-none" />
-                </div>
+                {formData.signature ? (
+                  <img src={formData.signature} className="h-16 mx-auto object-contain bg-white rounded" />
+                ) : (
+                  <div className="h-16 flex items-center justify-center text-xs text-slate-400">Sin firma</div>
+                )}
+                <input type="file" accept="image/*" onChange={e => handleFileUpload(e, 'signature')} className="mt-2 text-xs w-full" />
               </div>
             </div>
 
-            <div className="md:col-span-2 space-y-8">
-               <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Nombres</label>
-                    <input required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl font-black text-slate-800 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Apellidos</label>
-                    <input required type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl font-black text-slate-800 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Categoría a Cargo</label>
-                    <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl font-black text-slate-800 outline-none">
-                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Fecha de Ingreso</label>
-                    <input required type="date" value={formData.entryDate} onChange={e => setFormData({...formData, entryDate: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl font-black text-slate-800 outline-none" />
-                  </div>
-               </div>
-
-               <div className="space-y-6">
-                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Datos de Contacto</h4>
-                 <div className="grid grid-cols-2 gap-8">
-                    <div className="col-span-1">
-                      <label className="block text-[10px] font-black text-slate-500 uppercase mb-2">Celular Personal</label>
-                      <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl font-black text-slate-800 outline-none" />
-                    </div>
-                    <div className="col-span-1">
-                      <label className="block text-[10px] font-black text-slate-500 uppercase mb-2">Residencia</label>
-                      <input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl font-black text-slate-800 outline-none" />
-                    </div>
-                 </div>
-               </div>
+            <div className="md:col-span-2 grid grid-cols-2 gap-4">
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombres</label>
+                <input required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Apellidos</label>
+                <input required type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría Asignada</label>
+                <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Salario Base</label>
+                <input type="number" value={formData.baseSalary} onChange={e => setFormData({...formData, baseSalary: parseFloat(e.target.value)})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Ingreso</label>
+                <input required type="date" value={formData.entryDate} onChange={e => setFormData({...formData, entryDate: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha Retiro (Opcional)</label>
+                <input type="date" value={formData.exitDate || ''} onChange={e => setFormData({...formData, exitDate: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label>
+                <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Hoja de Vida (PDF)</label>
+                <input type="file" accept=".pdf" onChange={e => handleFileUpload(e, 'cvUrl')} className="w-full text-xs" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dirección Residencia</label>
+                <input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-6 pt-10 border-t border-slate-100">
-            <button type="button" onClick={onClose} className="flex-1 py-5 text-slate-400 font-black uppercase tracking-widest text-[10px]">Cerrar</button>
-            <button type="submit" className="flex-[3] py-5 bg-slate-900 text-white rounded-[2rem] font-black shadow-2xl flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all">
-              <Save className="w-6 h-6" /> Guardar Cambios
+          <div className="flex gap-4 pt-4 border-t border-slate-100">
+            <button type="button" onClick={onClose} className="flex-1 py-3 px-6 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
+            <button type="submit" className="flex-[2] py-3 px-6 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2">
+              <Save className="w-5 h-5" /> Guardar Entrenador
             </button>
           </div>
         </form>
