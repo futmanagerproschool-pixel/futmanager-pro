@@ -1,0 +1,20 @@
+
+{
+  "name": "FutManager Pro v6.5",
+  "short_name": "FutManager",
+  "description": "Sistema profesional de gestión para escuelas de fútbol con IA integrada.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/53/53283.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#10b981",
+  "background_color": "#f8fafc",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
