@@ -1,7 +1,8 @@
 
 export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
 export type UserRole = 'ADMIN' | 'COACH' | 'SECRETARY';
-export type PaymentMethod = 'CASH' | 'CARD' | 'CREDIT' | 'POINTS';
+export type PaymentMethod = 'CASH' | 'CARD' | 'CREDIT' | 'NEQUI' | 'DAVIPLATA' | 'TRANSFER' | 'OTHER';
+export type SaleStatus = 'PAID' | 'PENDING' | 'CANCELLED';
 
 export interface User {
   id: string;
@@ -11,7 +12,6 @@ export interface User {
   password: string;
 }
 
-// Added SchoolInfo interface to be used by Sidebar and other components
 export interface SchoolInfo {
   name: string;
   slogan: string;
@@ -50,18 +50,17 @@ export interface SaleItem {
   description: string;
   quantity: number;
   price: number;
-  buyPriceAtSale: number;
-  subtotal: number;
 }
 
 export interface Sale {
   id: string;
+  orderNumber: number;
   date: string;
   items: SaleItem[];
   total: number;
-  discount: number;
   paymentMethod: PaymentMethod;
-  status: 'PAID' | 'PENDING';
+  status: SaleStatus;
+  customerName: string;
   updatedAt: number;
 }
 
@@ -113,6 +112,33 @@ export interface Student {
   paymentStatus: 'UP_TO_DATE' | 'IN_ARREARS';
   status: 'ACTIVE' | 'RETIRED';
   updatedAt: number;
+  paidMonths?: string[]; // Formato YYYY-MM
+}
+
+export interface MonthlyPaymentRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  month: string; // YYYY-MM
+  baseAmount: number;
+  discount: number;
+  paidAmount: number;
+  paymentMethod: PaymentMethod;
+  date: string;
+  orderNumber: number;
+}
+
+export interface PayrollRecord {
+  id: string;
+  coachId: string;
+  coachName: string;
+  month: string; // YYYY-MM
+  baseSalary: number;
+  discounts: number;
+  netPaid: number;
+  paymentMethod: PaymentMethod;
+  date: string;
+  orderNumber: number;
 }
 
 export interface Transaction {
@@ -123,6 +149,7 @@ export interface Transaction {
   category: 'MONTHLY_PAYMENT' | 'PETTY_CASH' | 'EQUIPMENT' | 'SALARY' | 'STORE_SALE' | 'OTHER';
   amount: number;
   description: string;
+  paymentMethod: PaymentMethod;
   updatedAt: number;
 }
 
@@ -136,6 +163,8 @@ export interface AppData {
   users: User[];
   products: Product[];
   sales: Sale[];
+  monthlyPayments: MonthlyPaymentRecord[];
+  payrollRecords: PayrollRecord[];
   pettyCashBalance: number;
   nextOrderNumber: number;
 }

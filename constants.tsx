@@ -9,6 +9,7 @@ export const POSITIONS = [
   'Portero', 'Defensa Central', 'Lateral', 'Mediocentro', 'Extremo', 'Delantero'
 ];
 
+// Added missing monthlyPayments and payrollRecords properties to INITIAL_DATA
 export const INITIAL_DATA: AppData = {
   school: {
     name: 'FutManager Pro School',
@@ -29,6 +30,8 @@ export const INITIAL_DATA: AppData = {
     { id: 'p2', code: 'BAL-05', description: 'Balón Profesional #5', buyPrice: 120000, sellPrice: 185000, stock: 10, category: 'Implementos', updatedAt: Date.now() }
   ],
   sales: [],
+  monthlyPayments: [],
+  payrollRecords: [],
   pettyCashBalance: 1000000,
   nextOrderNumber: 1
 };

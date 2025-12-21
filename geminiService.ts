@@ -4,25 +4,33 @@ import { AppData } from "./types";
 
 export const generateSchoolReport = async (data: AppData) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  
   const stats = {
     totalStudents: data.students.length,
-    inMora: data.students.filter(s => s.paymentStatus === 'IN_ARREARS').length,
+    paidStudents: data.students.filter(s => (s.paidMonths || []).includes(currentMonth)).length,
     totalIncomeMonth: data.transactions
-      .filter(t => t.type === 'INCOME' && t.date.startsWith(new Date().toISOString().slice(0, 7)))
+      .filter(t => t.type === 'INCOME' && t.date.startsWith(currentMonth))
       .reduce((acc, t) => acc + t.amount, 0),
-    inventoryValue: data.products.reduce((acc, p) => acc + (p.stock * p.buyPrice), 0),
+    totalExpensesMonth: data.transactions
+      .filter(t => t.type === 'EXPENSE' && t.date.startsWith(currentMonth))
+      .reduce((acc, t) => acc + t.amount, 0),
+    pettyCash: data.pettyCashBalance,
+    lowStockItems: data.products.filter(p => p.stock < 5).length
   };
 
-  const prompt = `Analiza los datos de esta escuela de fútbol:
-  - Estudiantes: ${stats.totalStudents} (${stats.inMora} en mora).
+  const prompt = `Como consultor experto en gestión deportiva, analiza estos datos de la escuela de fútbol "${data.school.name}":
+  - Estudiantes: ${stats.totalStudents} (${stats.paidStudents} han pagado este mes).
   - Ingresos este mes: ${stats.totalIncomeMonth} COP.
-  - Saldo Caja: ${data.pettyCashBalance} COP.
-  - Valor Inventario: ${stats.inventoryValue} COP.
+  - Gastos este mes: ${stats.totalExpensesMonth} COP.
+  - Saldo en Caja Física: ${stats.pettyCash} COP.
+  - Inventario: ${stats.lowStockItems} productos con stock bajo.
   
-  Genera un informe corto con:
-  1. Salud Financiera (Basado en caja e ingresos).
-  2. Alerta de Morosidad.
-  3. Sugerencia de Venta de Inventario.`;
+  Genera un informe ejecutivo conciso dividido en:
+  1. ESTATUS FINANCIERO: (Analiza flujo de caja y rentabilidad).
+  2. NIVEL DE RECAUDO: (Análisis de morosidad y recomendaciones).
+  3. GESTIÓN OPERATIVA: (Recomendaciones de inventario y personal).
+  Usa un tono profesional y motivador.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -31,14 +39,23 @@ export const generateSchoolReport = async (data: AppData) => {
     });
     return response.text;
   } catch (error) {
-    return "Error al conectar con la IA.";
+    console.error("AI Error:", error);
+    return "Error al conectar con la inteligencia artificial. Verifique su API Key.";
   }
 };
 
 export const generateTrainingPlan = async (category: string, objective: string) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const prompt = `Plan de entrenamiento para categoría ${category}. Objetivo: ${objective}. 
-  Estructura: Calentamiento, Parte Principal (3 ejercicios), Vuelta a la calma. Formato Markdown.`;
+  const prompt = `Actúa como un Director Técnico profesional nivel UEFA Pro. Diseña un plan de entrenamiento detallado para la categoría ${category}. 
+  OBJETIVO DE LA SESIÓN: ${objective}.
+  
+  Incluye:
+  - Calentamiento Dinámico (15 min).
+  - Bloque Técnico: 2 ejercicios con variantes.
+  - Bloque Táctico: Aplicación al juego real.
+  - Vuelta a la calma y Feedback.
+  
+  Usa formato Markdown con viñetas y negritas para resaltar conceptos clave.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -48,6 +65,7 @@ export const generateTrainingPlan = async (category: string, objective: string) 
     });
     return response.text;
   } catch (error) {
-    return "Error generando entrenamiento.";
+    console.error("AI Training Error:", error);
+    return "No se pudo generar el plan en este momento.";
   }
 };
