@@ -1,4 +1,4 @@
-
+import ProviderModal from './components/ProviderModal';
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
@@ -54,7 +54,9 @@ const App: React.FC = () => {
   const [visiblePins, setVisiblePins] = useState<Record<string, boolean>>({});
   const [aiReport, setAiReport] = useState<string | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  
+ // Estos son los "interruptores" para el Modal de Proveedores
+const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
+const [editingProvider, setEditingProvider] = useState<Provider | null>(null); 
   // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('futmanager_session');
@@ -502,6 +504,12 @@ const App: React.FC = () => {
             activeTab === 'store' ? 'Tienda Pro' :
             activeTab === 'training' ? 'Metodología Deportiva' :
             activeTab
+            <button 
+  onClick={() => setIsProviderModalOpen(true)}
+  className="..."
+>
+  <Truck size={18} /> Gestionar Proveedores
+</button>
           }</h1></div>
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-end">
