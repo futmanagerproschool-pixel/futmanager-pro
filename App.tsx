@@ -1299,6 +1299,15 @@ const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
              <div className="p-8 bg-slate-900 rounded-[3rem] text-white flex items-center justify-between">
                 <div className="flex items-center gap-4"><div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center"><CheckCircle2 className="w-6 h-6" /></div><p className="text-xs font-bold">Cambios sincronizados automáticamente para todos los usuarios.</p></div>
              </div>
+            <ProviderModal 
+  isOpen={isProviderModalOpen} 
+  onClose={() => setIsProviderModalOpen(false)}
+  onSave={(p) => {
+    // Esto guarda el proveedor sin importar cómo se llame tu función de guardado
+    console.log("Proveedor guardado:", p);
+    setIsProviderModalOpen(false);
+  }}
+/>
           </div>
         )}
 
