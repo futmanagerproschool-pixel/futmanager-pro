@@ -1,3 +1,10 @@
+export interface Provider {
+  id: string;
+  name: string;
+  nit: string;
+  contactName: string;
+  phone: string;
+  address
 import ProviderModal from './components/ProviderModal';
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
@@ -28,7 +35,23 @@ import { AppData, Student, User, Coach, Product, Transaction, PaymentMethod, Mon
 import { INITIAL_DATA } from './constants';
 import { formatCurrency, exportToCSV, printMonthlyReceipt, printPayrollStub, calculateAge, calculateBMI, getBMIStatus, printReceipt, downloadCSVTemplate, parseCSV } from './utils';
 import { generateSchoolReport } from './geminiService';
+// 1. Definimos qué datos tiene un Proveedor
+export interface Provider {
+  id: string;
+  name: string;
+  nit: string;
+  contactName: string;
+  phone: string;
+  address: string;
+  email: string;
+  updatedAt: number;
+}
 
+// 2. BUSCA la interface AppData que ya tienes y asegúrate de que tenga esto:
+// interface AppData {
+//   ... otros campos ...
+//   providers: Provider[]; // <--- AGREGA ESTA LÍNEA
+// }
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -47,6 +70,8 @@ const App: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
   const [syncStatus, setSyncStatus] = useState<'LOCAL' | 'CLOUD' | 'ERROR'>('LOCAL');
+  const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
+  const [editingProvider, setEditingProvider] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [financialView, setFinancialView] = useState<'RECAUDO' | 'NOMINA' | 'CAJA'>('RECAUDO');
   const [storeView, setStoreView] = useState<'POS' | 'INVENTORY'>('POS');
