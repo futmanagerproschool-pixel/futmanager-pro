@@ -1,3 +1,15 @@
+import ProviderModal from './components/ProviderModal';
+
+export interface Provider {
+  id: string;
+  name: string;
+  nit: string;
+  contactName: string;
+  phone: string;
+  address: string;
+  email: string;
+  updatedAt: number;
+}
 export interface Provider {
   id: string;
   name: string;
@@ -79,8 +91,7 @@ const App: React.FC = () => {
   const [visiblePins, setVisiblePins] = useState<Record<string, boolean>>({});
   const [aiReport, setAiReport] = useState<string | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
- // Estos son los "interruptores" para el Modal de Proveedores
-const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
+  const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
 const [editingProvider, setEditingProvider] = useState<Provider | null>(null); 
   // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -528,6 +539,12 @@ const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
             activeTab === 'users' ? 'Usuarios del Sistema' :
             activeTab === 'store' ? 'Tienda Pro' :
             activeTab === 'training' ? 'Metodología Deportiva' :
+            <button 
+  onClick={() => setIsProviderModalOpen(true)}
+  className="flex items-center gap-3 px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl font-black text-[10px] uppercase text-slate-600 hover:border-emerald-500 transition-all"
+>
+  <span className="text-xl">🚚</span> Gestionar Proveedores
+</button>
             activeTab
             <button 
   onClick={() => setIsProviderModalOpen(true)}
