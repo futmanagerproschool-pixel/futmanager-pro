@@ -82,7 +82,7 @@ const App: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
   const [syncStatus, setSyncStatus] = useState<'LOCAL' | 'CLOUD' | 'ERROR'>('LOCAL');
-  const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
+  const [isProviderModalOpen, setIsProviderModalOpen] = useState(true);
   const [editingProvider, setEditingProvider] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [financialView, setFinancialView] = useState<'RECAUDO' | 'NOMINA' | 'CAJA'>('RECAUDO');
@@ -91,8 +91,7 @@ const App: React.FC = () => {
   const [visiblePins, setVisiblePins] = useState<Record<string, boolean>>({});
   const [aiReport, setAiReport] = useState<string | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
-const [editingProvider, setEditingProvider] = useState<Provider | null>(null); 
+ const [editingProvider, setEditingProvider] = useState<Provider | null>(null); 
   // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('futmanager_session');
