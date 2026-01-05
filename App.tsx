@@ -65,12 +65,13 @@ export interface Provider {
 //   providers: Provider[]; // <--- AGREGA ESTA LÍNEA
 // }
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID
+  apiKey: "AIzaSyD8COWL_GU3k1oIN37r5rroBuqYvCD4Skw",
+  authDomain: "futmanagerpro-42dfd.firebaseapp.com",
+  projectId: "futmanagerpro-42dfd",
+  storageBucket: "futmanagerpro-42dfd.firebasestorage.app",
+  messagingSenderId: "934402477410",
+  appId: "1:934402477410:web:4213285da13c7eff7c703b",
+  measurementId: "G-C87S9WQW47"
 };
 
 const app = firebaseConfig.apiKey ? initializeApp(firebaseConfig) : null;
