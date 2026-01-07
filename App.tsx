@@ -113,7 +113,7 @@ const App: React.FC = () => {
   // --- LÓGICA DE PERSISTENCIA (WRITE) ---
   const persistData = async (updater: (prev: AppData) => AppData) => {
   setIsSyncing(true);
-  try {
+  try {alert("Intentando conectar con Firebase...");
     // Calculamos el nuevo estado basado en el estado anterior más reciente
     const updated = updater(data);
     
