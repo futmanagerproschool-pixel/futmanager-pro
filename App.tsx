@@ -14,7 +14,21 @@ import {
   X, CreditCard, Smartphone, FileUp, ClipboardList, BookOpen,
   WifiOff, AlertCircle, ReceiptText, UserX, Truck
 } from 'lucide-react';
-
+useEffect(() => {
+  // TEST DE ESCRITURA INMEDIATA
+  const testFirebase = async () => {
+    try {
+      console.log("Probando conexión...");
+      await setDoc(doc(db, 'escuela', 'test_conexion'), { 
+        fecha: new Date().toISOString(),
+        mensaje: "Si ves esto, Firebase funciona" 
+      });
+      console.log("✅ TEST EXITOSO: Firebase está recibiendo datos.");
+    } catch (e) {
+      console.error("❌ TEST FALLIDO: Firebase rechaza la conexión.", e);
+    }
+  };
+  testFirebase();
 // Componentes e Interfaces
 import Sidebar from './components/Sidebar';
 import StudentModal from './components/StudentModal';
