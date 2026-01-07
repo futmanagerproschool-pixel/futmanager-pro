@@ -112,19 +112,29 @@ const App: React.FC = () => {
 
   // --- LÓGICA DE PERSISTENCIA (WRITE) ---
   const persistData = async (updater: (prev: AppData) => AppData) => {
-    setIsSyncing(true);
-    try {
-      const updated = updater(data);
-      await setDoc(doc(db, 'escuela', 'datos_principales'), updated);
-      console.log("✅ Sincronizado con Firebase exitosamente");
-    } catch (e) {
-      console.error("❌ Error al guardar:", e);
-      setSyncStatus('ERROR');
-      alert("Error de conexión. Los datos no se guardaron en la nube.");
-    } finally {
-      setIsSyncing(false);
-    }
-  };
+  setIsSyncing(true);
+  try {
+    // Calculamos el nuevo estado basado en el estado anterior más reciente
+    const updated = updater(data);
+    
+    // Referencia exacta al documento
+    const docRef = doc(db, 'escuela', 'datos_principales');
+    
+    // Guardado forzado
+    await setDoc(docRef, updated, { merge: true });
+    
+    console.log("✅ ¡ÉXITO! Guardado en Firebase:", updated);
+    setSyncStatus('CLOUD');
+  } catch (e: any) {
+    console.error("❌ ERROR DE FIREBASE:", e);
+    setSyncStatus('ERROR');
+    
+    // Esto te dirá exactamente POR QUÉ falla (ej: "Missing or insufficient permissions")
+    alert(`Error de Firebase: ${e.message}`);
+  } finally {
+    setIsSyncing(false);
+  }
+};
 
   // --- HANDLERS DE NEGOCIO ---
   const handleSaveProvider = (provider: Provider) => {
