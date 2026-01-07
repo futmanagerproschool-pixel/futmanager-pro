@@ -64,15 +64,27 @@ export interface Provider {
 //   ... otros campos ...
 //   providers: Provider[]; // <--- AGREGA ESTA LÍNEA
 // }
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyD8COWL_GU3k1oIN37r5rroBuqYvCD4Skw",
   authDomain: "futmanagerpro-42dfd.firebaseapp.com",
   projectId: "futmanagerpro-42dfd",
   storageBucket: "futmanagerpro-42dfd.firebasestorage.app",
   messagingSenderId: "934402477410",
-  appId: "1:934402477410:web:4213285da13c7eff7c703b",
-  measurementId: "G-C87S9WQW47"
+  appId: "1:934402477410:web:ce63f48cf38179d67c703b",
+  measurementId: "G-WG0D4K2TF5"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 const app = firebaseConfig.apiKey ? initializeApp(firebaseConfig) : null;
 const db = app ? getFirestore(app) : null;
