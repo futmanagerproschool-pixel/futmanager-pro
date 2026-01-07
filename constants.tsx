@@ -12,8 +12,8 @@ export const POSITIONS = [
 // Added missing monthlyPayments and payrollRecords properties to INITIAL_DATA
 export const INITIAL_DATA: AppData = {
   school: {
-    name: 'FutManager Pro School',
-    slogan: 'Formando Campeones para el Mañana'
+    name: 'Santa Marta FC',
+    slogan: 'Mas que un Club una Familia'
   },
   users: [
     { id: 'u1', name: 'Admin Principal', email: 'admin@escuela.com', role: 'ADMIN', password: 'admin' },
