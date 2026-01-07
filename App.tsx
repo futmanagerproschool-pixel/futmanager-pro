@@ -44,7 +44,28 @@ import { AppData, Student, User, Coach, Product, Transaction, PaymentMethod, Mon
 import { INITIAL_DATA } from './constants';
 import { formatCurrency, exportToCSV, printMonthlyReceipt, calculateAge, printReceipt, parseCSV } from './utils';
 import { generateSchoolReport } from './geminiService';
+// ESTO ELIMINA EL MENSAJE DE SUPABASE DE LA CONSOLA
+(window as any).supabase = null; 
+console.log = (function(oldLog) {
+    return function(message) {
+        if (typeof message === 'string' && message.includes('Supabase no configurado')) return;
+        oldLog.apply(console, arguments as any);
+    };
+})(console.log);
 
+// CONFIGURACIÓN DE FIREBASE REFORZADA
+const firebaseConfig = {
+  apiKey: "AIzaSyD8COWL_GU3k1oIN37r5rroBuqYvCD4Skw",
+  authDomain: "futmanagerpro-42dfd.firebaseapp.com",
+  projectId: "futmanagerpro-42dfd",
+  storageBucket: "futmanagerpro-42dfd.firebasestorage.app",
+  messagingSenderId: "934402477410",
+  appId: "1:934402477410:web:ce63f48cf38179d67c703b",
+  measurementId: "G-WG0D4K2TF5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 // --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyD8COWL_GU3k1oIN37r5rroBuqYvCD4Skw",
