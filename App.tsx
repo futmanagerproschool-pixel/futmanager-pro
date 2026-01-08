@@ -294,7 +294,9 @@ const App: React.FC = () => {
         <header className="flex items-center justify-between mb-12">
           <div>
             <h2 className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-1">Módulo de Gestión</h2>
-            <h1 className="text-4xl font-black text-slate-900 capitalize tracking-tighter">
+           <h1 className="text-4xl font-black text-slate-900 capitalize tracking-tighter">
+  PRUEBA DE CONEXIÓN ACTIVA
+</h1>
               {activeTab === 'dashboard' ? 'Panel Principal' : 
                activeTab === 'store' ? 'Tienda Pro' : 
                activeTab === 'providers' ? 'Proveedores' : activeTab}
