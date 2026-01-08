@@ -8,21 +8,22 @@ import {
   WifiOff, Calendar, CreditCard, ShoppingCart, UserPlus, ClipboardList 
 } from 'lucide-react';
 
-// --- IMPORTACIÓN DE TUS COMPONENTES ---
-import Sidebar from './components/Sidebar';
-import StudentModal from './components/StudentModal';
-import ProviderModal from './components/ProviderModal';
-import CoachModal from './components/CoachModal';
-import ProductModal from './components/ProductModal';
-import TransactionModal from './components/TransactionModal';
-import MatchModal from './components/MatchModal';
-import TrainingModal from './components/TrainingModal';
+import React, { useState, useEffect } from 'react';
+// IMPORTANTE: Sin puntos ni slashes, para que el navegador use el Import Map
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { GoogleGenerativeAI } from "@google/genai";
+// Lucide-react también desde el mapa
+import { 
+  X, Camera, Save, Activity, GraduationCap, Phone, MapPin, 
+  Calendar, Heart, Plus, Trophy, Users, PiggyBank, RefreshCw 
+} from 'lucide-react';
 
-// --- IMPORTACIÓN DE TIPOS Y UTILIDADES ---
-import { AppData, Student, User, Coach, Product, Provider, Sale, Transaction, TrainingPlan } from './types';
-import { INITIAL_DATA } from './constants';
-import { formatCurrency, generateId } from './utils';
-
+// Importaciones de tus archivos locales (aquí sí se usa ./ )
+import { Student, BloodType, AppData } from './types';
+import { CATEGORIES, POSITIONS } from './constants';
+import { calculateBMI, getBMIStatus, generateId } from './utils';
 // --- 1. CONFIGURACIÓN FIREBASE (PROYECTO: futmanagerpro-42dfd) ---
 const firebaseConfig = {
   apiKey: "AIzaSyD8COWL_GU3k1oIN37r5rroBuqYvCD4Skw",
