@@ -1,59 +1,29 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
-import { getAnalytics } from "firebase/analytics";
+import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { 
-  Plus, Users, PiggyBank, Trophy, ChevronRight,
-  RefreshCw, Lock, TrendingUp, TrendingDown, Search, 
-  ShoppingBag, ShoppingCart, Package, History, 
-  CheckCircle2, AlertTriangle, UserSquare2, Trash2, 
-  Download, FileText, Printer, FileSpreadsheet, Landmark, 
-  Wallet, Eye, EyeOff, UserPlus, Minus, Tag, Store,
-  Globe, CloudOff, Activity, Clock, ShieldCheck, Settings as SettingsIcon,
-  Sparkles, BrainCircuit, Upload, Trash, Mail, Phone, Briefcase,
-  X, CreditCard, Smartphone, FileUp, ClipboardList, BookOpen,
-  WifiOff, AlertCircle, ReceiptText, UserX, Truck
+  Plus, Users, PiggyBank, Trophy, ChevronRight, RefreshCw, Lock, 
+  Search, ShoppingBag, Package, Globe, Activity, Truck, X, Save, 
+  WifiOff, Calendar, CreditCard, ShoppingCart, UserPlus, ClipboardList 
 } from 'lucide-react';
-useEffect(() => {
-  // TEST DE ESCRITURA INMEDIATA
-  const testFirebase = async () => {
-    try {
-      console.log("Probando conexión...");
-      await setDoc(doc(db, 'escuela', 'test_conexion'), { 
-        fecha: new Date().toISOString(),
-        mensaje: "Si ves esto, Firebase funciona" 
-      });
-      console.log("✅ TEST EXITOSO: Firebase está recibiendo datos.");
-    } catch (e) {
-      console.error("❌ TEST FALLIDO: Firebase rechaza la conexión.", e);
-    }
-  };
-  testFirebase();
-// Componentes e Interfaces
+
+// --- IMPORTACIÓN DE TUS COMPONENTES ---
 import Sidebar from './components/Sidebar';
 import StudentModal from './components/StudentModal';
-import TrainingModal from './components/TrainingModal';
-import CoachModal from './components/CoachModal';
-import MatchModal from './components/MatchModal';
-import UserModal from './components/UserModal';
-import TransactionModal from './components/TransactionModal';
-import ProductModal from './components/ProductModal';
-import StudentPaymentModal from './components/StudentPaymentModal';
 import ProviderModal from './components/ProviderModal';
-import { AppData, Student, User, Coach, Product, Transaction, PaymentMethod, MonthlyPaymentRecord, PayrollRecord, TrainingPlan, Sale, SaleItem, Provider, BloodType } from './types';
+import CoachModal from './components/CoachModal';
+import ProductModal from './components/ProductModal';
+import TransactionModal from './components/TransactionModal';
+import MatchModal from './components/MatchModal';
+import TrainingModal from './components/TrainingModal';
+
+// --- IMPORTACIÓN DE TIPOS Y CONSTANTES ---
+import { AppData, Student, User, Coach, Product, Provider, Sale, Transaction, TrainingPlan } from './types';
 import { INITIAL_DATA } from './constants';
-import { formatCurrency, exportToCSV, printMonthlyReceipt, calculateAge, printReceipt, parseCSV } from './utils';
-import { generateSchoolReport } from './geminiService';
-// ESTO ELIMINA EL MENSAJE DE SUPABASE DE LA CONSOLA
-(window as any).supabase = null; 
-console.log = (function(oldLog) {
-    return function(message) {
-        if (typeof message === 'string' && message.includes('Supabase no configurado')) return;
-        oldLog.apply(console, arguments as any);
-    };
-})(console.log);
+import { formatCurrency } from './utils';
 
-// CONFIGURACIÓN DE FIREBASE REFORZADA
+// --- 1. CONFIGURACIÓN FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyD8COWL_GU3k1oIN37r5rroBuqYvCD4Skw",
   authDomain: "futmanagerpro-42dfd.firebaseapp.com",
@@ -66,303 +36,219 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-// --- CONFIGURACIÓN DE FIREBASE ---
-const firebaseConfig = {
-  apiKey: "AIzaSyD8COWL_GU3k1oIN37r5rroBuqYvCD4Skw",
-  authDomain: "futmanagerpro-42dfd.firebaseapp.com",
-  projectId: "futmanagerpro-42dfd",
-  storageBucket: "futmanagerpro-42dfd.firebasestorage.app",
-  messagingSenderId: "934402477410",
-  appId: "1:934402477410:web:ce63f48cf38179d67c703b",
-  measurementId: "G-WG0D4K2TF5"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const analytics = getAnalytics(app);
+const storage = getStorage(app);
 
 const App: React.FC = () => {
-  // Estados de Datos y Sincronización
+  // --- ESTADOS ---
   const [data, setData] = useState<AppData>(INITIAL_DATA);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
   const [syncStatus, setSyncStatus] = useState<'LOCAL' | 'CLOUD' | 'ERROR'>('LOCAL');
-
-  // Estados de Navegación y UI
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [financialView, setFinancialView] = useState<'RECAUDO' | 'NOMINA' | 'CAJA'>('RECAUDO');
-  const [storeView, setStoreView] = useState<'POS' | 'INVENTORY'>('POS');
-
-  // Estados de Modales y Edición
-  const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
-  const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
-  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<Student | undefined>();
-  const [isCoachModalOpen, setIsCoachModalOpen] = useState(false);
-  const [editingCoach, setEditingCoach] = useState<Coach | undefined>();
-  const [isTrainingModalOpen, setIsTrainingModalOpen] = useState(false);
-  const [isMatchModalOpen, setIsMatchModalOpen] = useState(false);
-  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [studentForPayment, setStudentForPayment] = useState<Student | null>(null);
-
-  // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('futmanager_session');
     return saved ? JSON.parse(saved) : null;
   });
-  const [loginStep, setLoginStep] = useState<'SELECT' | 'PASSWORD'>('SELECT');
-  const [selectedUserLogin, setSelectedUserLogin] = useState<User | null>(null);
-  const [passwordInput, setPasswordInput] = useState('');
 
-  // POS State
-  const [cart, setCart] = useState<SaleItem[]>([]);
-  const [customerName, setCustomerName] = useState('');
-  const [posPaymentMethod, setPosPaymentMethod] = useState<PaymentMethod>('CASH');
+  // Control de Modales
+  const [modals, setModals] = useState({
+    student: false, provider: false, coach: false, product: false, 
+    transaction: false, match: false, training: false
+  });
+  const [editingItem, setEditingItem] = useState<any>(null);
 
-  // --- LÓGICA DE FIREBASE (READ) ---
+  // --- 2. ESCUCHA DE DATOS EN TIEMPO REAL ---
   useEffect(() => {
     const docRef = doc(db, 'escuela', 'datos_principales');
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setData(docSnap.data() as AppData);
         setSyncStatus('CLOUD');
-        setLastSyncTime(new Date());
       } else {
         setDoc(docRef, INITIAL_DATA);
       }
       setIsLoading(false);
-    }, (error) => { 
-      console.error("Firestore Error:", error);
-      setSyncStatus('ERROR'); 
-      setIsLoading(false); 
+    }, (error) => {
+      console.error("Error Firebase:", error);
+      setSyncStatus('ERROR');
+      setIsLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  // --- LÓGICA DE PERSISTENCIA (WRITE) ---
-  const persistData = async (updater: (prev: AppData) => AppData) => {
-  setIsSyncing(true);
-  try {alert("Intentando conectar con Firebase...");
-    // Calculamos el nuevo estado basado en el estado anterior más reciente
-    const updated = updater(data);
-    
-    // Referencia exacta al documento
-    const docRef = doc(db, 'escuela', 'datos_principales');
-    
-    // Guardado forzado
-    await setDoc(docRef, updated, { merge: true });
-    
-    console.log("✅ ¡ÉXITO! Guardado en Firebase:", updated);
-    setSyncStatus('CLOUD');
-  } catch (e: any) {
-    console.error("❌ ERROR DE FIREBASE:", e);
-    setSyncStatus('ERROR');
-    
-    // Esto te dirá exactamente POR QUÉ falla (ej: "Missing or insufficient permissions")
-    alert(`Error de Firebase: ${e.message}`);
-  } finally {
-    setIsSyncing(false);
-  }
-};
+  // --- 3. FUNCIONES DE PERSISTENCIA (NUBE) ---
 
-  // --- HANDLERS DE NEGOCIO ---
+  // Función para subir archivos a Storage
+  const uploadToStorage = async (file: File, folder: string) => {
+    const storageRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  };
+
+  // Función Maestra para guardar en Firestore
+  const persistData = async (updater: (prev: AppData) => AppData) => {
+    setIsSyncing(true);
+    try {
+      const updatedData = updater(data);
+      await setDoc(doc(db, 'escuela', 'datos_principales'), updatedData);
+      setSyncStatus('CLOUD');
+    } catch (e) {
+      console.error("Error al persistir:", e);
+      setSyncStatus('ERROR');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // --- 4. MANEJADORES POR MÓDULO ---
+
+  const handleSaveStudent = async (student: Student, imageFile?: File) => {
+    let photoUrl = student.photo;
+    if (imageFile) photoUrl = await uploadToStorage(imageFile, 'alumnos');
+
+    const studentWithPhoto = { ...student, photo: photoUrl };
+    persistData(prev => ({
+      ...prev,
+      students: prev.students.find(s => s.id === student.id)
+        ? prev.students.map(s => s.id === student.id ? studentWithPhoto : s)
+        : [...prev.students, studentWithPhoto]
+    }));
+    setModals(m => ({ ...m, student: false }));
+  };
+
   const handleSaveProvider = (provider: Provider) => {
     persistData(prev => ({
       ...prev,
-      providers: prev.providers 
-        ? (prev.providers.find(p => p.id === provider.id) 
-            ? prev.providers.map(p => p.id === provider.id ? provider : p)
-            : [...prev.providers, provider])
-        : [provider]
+      providers: (prev.providers || []).find(p => p.id === provider.id)
+        ? prev.providers.map(p => p.id === provider.id ? provider : p)
+        : [...(prev.providers || []), provider]
     }));
-    setIsProviderModalOpen(false);
-    setEditingProvider(null);
+    setModals(m => ({ ...m, provider: false }));
   };
 
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const handleSaveProduct = async (product: Product, imageFile?: File) => {
+    let photoUrl = product.image;
+    if (imageFile) photoUrl = await uploadToStorage(imageFile, 'productos');
 
-  const handlePayrollPayment = (coach: Coach) => {
-    const net = coach.baseSalary;
-    if (net > data.pettyCashBalance) return alert("Fondo insuficiente.");
-    const newRecord: PayrollRecord = {
-      id: Math.random().toString(36).substr(2, 9),
-      coachId: coach.id,
-      coachName: `${coach.firstName} ${coach.lastName}`,
-      month: currentMonth,
-      baseSalary: coach.baseSalary,
-      discounts: 0,
-      netPaid: net,
-      paymentMethod: 'CASH',
-      date: new Date().toISOString().split('T')[0],
-      orderNumber: data.nextOrderNumber
-    };
+    const productWithImage = { ...product, image: photoUrl };
     persistData(prev => ({
       ...prev,
-      payrollRecords: [newRecord, ...(prev.payrollRecords || [])],
-      pettyCashBalance: prev.pettyCashBalance - net,
-      nextOrderNumber: prev.nextOrderNumber + 1
+      products: prev.products.find(p => p.id === product.id)
+        ? prev.products.map(p => p.id === product.id ? productWithImage : p)
+        : [...prev.products, productWithImage]
     }));
+    setModals(m => ({ ...m, product: false }));
   };
 
-  const addToCart = (product: Product) => {
-    if (product.stock <= 0) return alert("Sin stock");
-    setCart(prev => {
-      const exists = prev.find(item => item.productId === product.id);
-      if (exists) return prev.map(item => item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item);
-      return [...prev, { productId: product.id, description: product.description, price: product.sellPrice, quantity: 1 }];
-    });
-  };
-
-  const processCheckout = async () => {
-    if (cart.length === 0) return;
-    const total = cart.reduce((a, b) => a + (b.price * b.quantity), 0);
-    const newSale: Sale = {
-      id: Math.random().toString(36).substr(2, 9),
-      orderNumber: data.nextOrderNumber,
-      date: new Date().toISOString().split('T')[0],
-      items: cart,
-      total: total,
-      paymentMethod: posPaymentMethod,
-      status: 'PAID',
-      customerName: customerName || 'Venta Mostrador',
-      updatedAt: Date.now()
-    };
+  const handleSaveTraining = (plan: TrainingPlan) => {
     persistData(prev => ({
       ...prev,
-      sales: [newSale, ...prev.sales],
-      products: prev.products.map(p => {
-        const item = cart.find(ci => ci.productId === p.id);
-        return item ? { ...p, stock: p.stock - item.quantity } : p;
-      }),
-      pettyCashBalance: posPaymentMethod === 'CASH' ? prev.pettyCashBalance + total : prev.pettyCashBalance,
-      nextOrderNumber: prev.nextOrderNumber + 1
+      trainingPlans: (prev.trainingPlans || []).find(p => p.id === plan.id)
+        ? prev.trainingPlans.map(p => p.id === plan.id ? plan : p)
+        : [...(prev.trainingPlans || []), plan]
     }));
-    setCart([]);
-    setCustomerName('');
-    alert("Venta procesada");
+    setModals(m => ({ ...m, training: false }));
   };
 
-  // --- RENDERIZADO DE CARGA Y LOGIN ---
+  const handleSaveMatch = (match: any) => {
+    persistData(prev => ({
+      ...prev,
+      matches: [...(prev.matches || []), match]
+    }));
+    setModals(m => ({ ...m, match: false }));
+  };
+
+  const handleTransaction = (t: Transaction) => {
+    persistData(prev => ({
+      ...prev,
+      transactions: [t, ...(prev.transactions || [])],
+      pettyCashBalance: t.type === 'INCOME' ? prev.pettyCashBalance + t.amount : prev.pettyCashBalance - t.amount
+    }));
+    setModals(m => ({ ...m, transaction: false }));
+  };
+
+  // --- 5. RENDERIZADO ---
+
   if (isLoading) return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6">
-      <RefreshCw className="w-12 h-12 text-emerald-500 animate-spin" />
-      <p className="text-emerald-500 font-black uppercase text-[10px] tracking-widest animate-pulse">Sincronizando con la Nube...</p>
+    <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 text-emerald-500">
+      <RefreshCw className="animate-spin" size={40} />
+      <span className="font-black text-xs uppercase tracking-widest">Sincronizando con Google Cloud...</span>
     </div>
   );
 
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <div className="bg-white rounded-[3.5rem] w-full max-w-md p-10 shadow-2xl space-y-8">
-           <div className="text-center">
-             <div className="w-16 h-16 bg-emerald-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-4"><Lock className="text-white w-8 h-8" /></div>
-             <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Acceso FutManager</h1>
-           </div>
-           {loginStep === 'SELECT' ? (
-             <div className="space-y-3">
-               {(data.users || []).map(u => (
-                 <button key={u.id} onClick={() => { setSelectedUserLogin(u); setLoginStep('PASSWORD'); }} className="w-full p-6 bg-slate-50 border-2 border-transparent hover:border-emerald-200 rounded-[2rem] flex items-center justify-between transition-all group">
-                    <div className="text-left"><p className="font-black text-slate-800">{u.name}</p><p className="text-[10px] text-emerald-600 uppercase font-black">{u.role}</p></div>
-                    <ChevronRight className="w-5 h-5 text-slate-300" />
-                 </button>
-               ))}
-             </div>
-           ) : (
-             <form onSubmit={(e) => { e.preventDefault(); if (selectedUserLogin?.password === passwordInput) { setCurrentUser(selectedUserLogin); localStorage.setItem('futmanager_session', JSON.stringify(selectedUserLogin)); } else { alert("PIN Incorrecto"); setPasswordInput(''); } }} className="space-y-6">
-                <input autoFocus type="password" placeholder="PIN" className="w-full py-6 bg-slate-50 border-2 border-slate-100 rounded-[2rem] text-center font-black text-4xl outline-none" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} />
-                <button type="submit" className="w-full py-5 bg-emerald-600 text-white rounded-[1.8rem] font-black shadow-2xl">Ingresar</button>
-                <button type="button" onClick={() => { setLoginStep('SELECT'); setPasswordInput(''); }} className="w-full text-slate-400 font-black text-[10px] uppercase text-center">Volver</button>
-             </form>
-           )}
+  if (!currentUser) return (
+    <div className="h-screen bg-slate-950 flex items-center justify-center p-6">
+      <div className="bg-white rounded-[3rem] w-full max-w-sm p-10 shadow-2xl">
+        <h1 className="text-2xl font-black text-center mb-8 text-slate-900">FutManager Pro</h1>
+        <div className="space-y-3">
+          {data.users?.map(u => (
+            <button key={u.id} onClick={() => { setCurrentUser(u); localStorage.setItem('futmanager_session', JSON.stringify(u)); }} 
+              className="w-full p-5 bg-slate-100 rounded-2xl font-bold hover:bg-emerald-500 hover:text-white transition-all text-left flex justify-between items-center group">
+              {u.name} <ChevronRight size={18} className="opacity-0 group-hover:opacity-100" />
+            </button>
+          ))}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // --- RENDERIZADO PRINCIPAL ---
   return (
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} school={data.school} currentUser={currentUser} onLogout={() => { setCurrentUser(null); localStorage.removeItem('futmanager_session'); }} />
       
-      <main className="flex-1 ml-64 p-12 overflow-y-auto h-screen">
-        <header className="flex items-center justify-between mb-12">
+      <main className="flex-1 ml-64 p-12 h-screen overflow-y-auto">
+        <header className="flex justify-between items-start mb-12">
           <div>
-            <h2 className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-1">Módulo de Gestión</h2>
-           <h1 className="text-4xl font-black text-slate-900 capitalize tracking-tighter">
-  PRUEBA DE CONEXIÓN ACTIVA
-</h1>
-              {activeTab === 'dashboard' ? 'Panel Principal' : 
-               activeTab === 'store' ? 'Tienda Pro' : 
-               activeTab === 'providers' ? 'Proveedores' : activeTab}
-            </h1>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsProviderModalOpen(true)}
-              className="flex items-center gap-3 px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl font-black text-[10px] uppercase text-slate-600 hover:border-emerald-500 transition-all"
-            >
-              <Truck size={18} className="text-emerald-500" /> Gestionar Proveedores
-            </button>
-            <div className={`px-5 py-2.5 rounded-full border-2 text-[10px] font-black uppercase flex items-center gap-3 ${syncStatus === 'CLOUD' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-500 border-rose-100'}`}>
-              {syncStatus === 'CLOUD' ? <Globe className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />} {syncStatus === 'CLOUD' ? 'Sincronizado' : 'Error Red'}
+            <h1 className="text-4xl font-black text-slate-900 tracking-tighter capitalize">{activeTab}</h1>
+            <div className="flex items-center gap-2 mt-2">
+              <div className={`w-2 h-2 rounded-full ${syncStatus === 'CLOUD' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {syncStatus === 'CLOUD' ? 'Conexión Segura Nube' : 'Error de Sincronización'}
+              </span>
             </div>
+          </div>
+
+          <div className="flex gap-3">
+            {activeTab === 'students' && (
+              <button onClick={() => setModals(m => ({ ...m, student: true }))} className="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase flex items-center gap-2 hover:scale-105 transition-transform">
+                <UserPlus size={16} /> Inscribir Alumno
+              </button>
+            )}
+            {activeTab === 'providers' && (
+              <button onClick={() => setModals(m => ({ ...m, provider: true }))} className="bg-slate-900 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase flex items-center gap-2 hover:scale-105 transition-transform">
+                <Truck size={16} /> Nuevo Proveedor
+              </button>
+            )}
           </div>
         </header>
 
-        {activeTab === 'dashboard' && (
-          <div className="space-y-10 animate-in fade-in">
-             <div className="bg-slate-900 p-12 rounded-[4rem] text-white shadow-3xl relative overflow-hidden group">
-               <div className="relative z-10 space-y-4">
-                 <h2 className="text-5xl font-black italic tracking-tighter">Bienvenido,<br/>{currentUser.name}</h2>
-                 <p className="text-slate-400 font-medium">Control total de la escuela en tiempo real.</p>
-               </div>
-               <Activity className="absolute right-[-20px] bottom-[-20px] w-64 h-64 text-emerald-500 opacity-5 -rotate-12" />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                {[
-                  { label: 'Alumnos', val: data.students.length, icon: Users, color: 'emerald' },
-                  { label: 'Caja', val: formatCurrency(data.pettyCashBalance), icon: PiggyBank, color: 'blue' },
-                  { label: 'Productos', val: data.products.length, icon: Package, color: 'rose' },
-                  { label: 'Proveedores', val: data.providers?.length || 0, icon: Truck, color: 'amber' }
-                ].map((s, i) => (
-                  <div key={i} className="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100 flex flex-col gap-6 hover:shadow-2xl transition-all">
-                    <s.icon className={`w-12 h-12 text-slate-600 bg-slate-50 p-3.5 rounded-2xl`} />
-                    <div><p className="text-[10px] text-slate-400 uppercase font-black mb-1">{s.label}</p><p className="text-2xl font-black text-slate-800">{s.val}</p></div>
-                  </div>
-                ))}
-             </div>
-          </div>
-        )}
-        
-        {/* Aquí puedes seguir pegando el resto de tus bloques activeTab (training, store, etc.) 
-            manteniendo la misma lógica de mapeo de data */}
-
+        {/* CONTENIDO DEL DASHBOARD / SECCIONES */}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+          {activeTab === 'dashboard' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <Users className="text-emerald-500 mb-4" size={32} />
+                <p className="text-[10px] font-black text-slate-400 uppercase">Estudiantes Activos</p>
+                <p className="text-4xl font-black text-slate-900">{data.students.length}</p>
+              </div>
+              <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <PiggyBank className="text-blue-500 mb-4" size={32} />
+                <p className="text-[10px] font-black text-slate-400 uppercase">Balance en Caja</p>
+                <p className="text-4xl font-black text-slate-900">{formatCurrency(data.pettyCashBalance)}</p>
+              </div>
+            </div>
+          )}
+          {/* Aquí puedes seguir mapeando el resto de tus pestañas */}
+        </div>
       </main>
 
-      {/* Modales Críticos */}
-      <ProviderModal 
-        isOpen={isProviderModalOpen} 
-        onClose={() => setIsProviderModalOpen(false)} 
-        onSave={handleSaveProvider}
-        editingProvider={editingProvider}
-      />
-      
-      {isStudentModalOpen && (
-        <StudentModal 
-          isOpen={isStudentModalOpen} 
-          onClose={() => setIsStudentModalOpen(false)} 
-          onSave={(student) => persistData(prev => ({ ...prev, students: [...prev.students, student] }))}
-        />
-      )}
-      
-      {/* Resto de modales (Training, Coach, Match, etc.) siguiendo el mismo patrón */}
+      {/* --- RENDERIZADO DE TODOS LOS MODALES --- */}
+      <StudentModal isOpen={modals.student} onClose={() => setModals(m => ({ ...m, student: false }))} onSave={handleSaveStudent} />
+      <ProviderModal isOpen={modals.provider} onClose={() => setModals(m => ({ ...m, provider: false }))} onSave={handleSaveProvider} />
+      <ProductModal isOpen={modals.product} onClose={() => setModals(m => ({ ...m, product: false }))} onSave={handleSaveProduct} />
+      <TransactionModal isOpen={modals.transaction} onClose={() => setModals(m => ({ ...m, transaction: false }))} onSave={handleTransaction} />
+      <TrainingModal isOpen={modals.training} onClose={() => setModals(m => ({ ...m, training: false }))} onSave={handleSaveTraining} />
+      <MatchModal isOpen={modals.match} onClose={() => setModals(m => ({ ...m, match: false }))} onSave={handleSaveMatch} />
 
     </div>
   );
